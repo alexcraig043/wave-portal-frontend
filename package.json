@@ -1,11 +1,10 @@
 {
-  "name": "ReplitReactjsProject",
+  "name": "wave-portal-frontend",
   "version": "0.0.1",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "serve": "vite preview",
-    "type": "module"
+    "serve": "vite preview"
   },
   "dependencies": {
     "@types/react": "^17.0.13",
