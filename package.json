@@ -1,4 +1,5 @@
 {
+  "type": "module",
   "name": "web3",
   "version": "0.0.1",
   "scripts": {

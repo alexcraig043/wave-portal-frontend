@@ -1,7 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import './index.css'
-// Setting to App.jsx fixed MIME error
 import App from './App.jsx'
 
 ReactDOM.render(
@@ -10,3 +9,4 @@ ReactDOM.render(
   </React.StrictMode>,
   document.getElementById('root')
 )
+ 
