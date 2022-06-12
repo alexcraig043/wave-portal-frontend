@@ -10,7 +10,6 @@ export default {
     hmr: {
       port: 443,
     }
-  },
-  root: 'dist'
+  }
 }
 
