@@ -12,16 +12,9 @@ export default function App() {
   const [currentAccount, setCurrentAccount] = useState("");
   const [mostWavesAddress, setMostWavesAddress] = useState("");
   const [mostWaves, setMostWaves] = useState("");
-
   const [onRinkeby, setOnRinkeby] = useState("");
-  
-  /**
-   * Create a variable here that holds the contract address after you deploy!
-   */
-  const contractAddress = "0x4f1F54139B793b7E48fd8085B2Af3EDeB3Fc08Ec";
-  /**
-   * Create a variable here that references the abi content!
-   */
+  const [allWaves, setAllWaves] = useState([]);
+  const contractAddress = "0x60C15f1bEc1f7EDb39e825aFb93ff0c9C15A238d";
   const contractABI = abi.abi;
 
  const checkIfWalletIsConnected = async () => {
@@ -32,8 +25,7 @@ export default function App() {
       // If user has locked/logout from MetaMask, this resets the accounts array to empty
       if (!accounts.length) {
         window.location.reload();
-      }
-});
+      }});
 
       if (!ethereum) {
         console.log("Make sure you have metamask!");
@@ -41,6 +33,7 @@ export default function App() {
       } else {
         console.log("We have the ethereum object", ethereum);
         setOnRinkeby(await ethereum.request({ method: 'eth_chainId' }) == "0x4");
+        getAllWaves();
         updateMostWaves();
       }
       
@@ -79,8 +72,6 @@ export default function App() {
       console.log("Connected", accounts[0]);
       setCurrentAccount(accounts[0]);
 
-      updateMostWaves();
-
     } catch (error) {
       console.log(error)
     }
@@ -101,16 +92,18 @@ const wave = async () => {
         /*
         * Execute the actual wave from your smart contract
         */
-        const waveTxn = await wavePortalContract.wave();
+        const msg = document.getElementById("message").value;
+
+        const waveTxn = await wavePortalContract.wave(msg, { gasLimit: 300000 });
         console.log("Mining...", waveTxn.hash);
+
+        document.getElementById("message").value = "";
 
         await waveTxn.wait();
         console.log("Mined -- ", waveTxn.hash);
 
         count = await wavePortalContract.getTotalWaves();
         console.log("Retrieved total wave count...", count.toNumber());
-
-        updateMostWaves();
         
       } else {
         console.log("Ethereum object doesn't exist!");
@@ -137,7 +130,7 @@ const wave = async () => {
     }
   }
 
-  const updateMostWaves = async() => {
+  const updateMostWaves = async () => {
     try {
       const { ethereum } = window;
       
@@ -147,10 +140,49 @@ const wave = async () => {
         const wavePortalContract = new ethers.Contract(contractAddress, contractABI, signer);
 
         const [ address, waves ] = await wavePortalContract.getMostWaves();
-        console.log(address.toString(), "has waved the most at", waves.toNumber(), "times!");
         setMostWavesAddress(address.toString());
-        setMostWaves(waves.toNumber());
+        setMostWaves(waves);
         }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  const getAllWaves = async () => {
+    try {
+      const { ethereum } = window;
+      if (ethereum) {
+        const provider = new ethers.providers.Web3Provider(ethereum);
+        const signer = provider.getSigner();
+        const wavePortalContract = new ethers.Contract(contractAddress, contractABI, signer);
+
+        /*
+         * Call the getAllWaves method from your Smart Contract
+         */
+        const waves = await wavePortalContract.getAllWaves();
+
+        /*
+         * We only need address, timestamp, and message in our UI so let's
+         * pick those out
+         */
+        let wavesCleaned = [];
+        waves.forEach(wave => {
+          wavesCleaned.push({
+            address: wave.waver,
+            timestamp: new Date(wave.timestamp * 1000),
+            message: wave.message
+          });
+        });
+
+        wavesCleaned.reverse();
+
+        /*
+         * Store our data in React State
+         */
+        setAllWaves(wavesCleaned);
+      } else {
+        console.log("Ethereum object doesn't exist!")
+      }
     } catch (error) {
       console.log(error);
     }
@@ -161,7 +193,35 @@ const wave = async () => {
   */
   useEffect(() => {
     checkIfWalletIsConnected();
-  }, [])
+    let wavePortalContract;
+  
+    const onNewWave = (from, timestamp, message) => {
+      console.log("NewWave", from, timestamp, message);
+      setAllWaves(prevState => [
+        {
+          address: from,
+          timestamp: new Date(timestamp * 1000),
+          message: message,
+        },
+        ...prevState,
+      ]);
+      updateMostWaves();
+    };
+  
+    if (window.ethereum) {
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+  
+      wavePortalContract = new ethers.Contract(contractAddress, contractABI, signer);
+      wavePortalContract.on("NewWave", onNewWave);
+    }
+  
+    return () => {
+      if (wavePortalContract) {
+        wavePortalContract.off("NewWave", onNewWave);
+      }
+    };
+  }, []);
   
   return (
     <div className="mainContainer">
@@ -182,6 +242,11 @@ const wave = async () => {
         )}
 
         {currentAccount && onRinkeby && (
+          <input placeholder="Wave Message" className="messageBox" id="message">
+          </input>
+        )}
+
+        {currentAccount && onRinkeby && (
           <div className="bio">
             { mostWavesAddress } has waved the most at { mostWaves } times!
           </div>
@@ -198,6 +263,15 @@ const wave = async () => {
             Connect Wallet
           </button>
         )}
+
+        {currentAccount && onRinkeby && allWaves.map((wave, index) => {
+          return (
+            <div key={index} style={{ backgroundColor: "OldLace", marginTop: "16px", padding: "8px" }}>
+              <div>Address: {wave.address}</div>
+              <div>Time: {wave.timestamp.toString()}</div>
+              <div>Message: {wave.message}</div>
+            </div>)
+        })}
       </div>
     </div>
   );
