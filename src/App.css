@@ -20,15 +20,25 @@
 
 .bio {
   text-align: center;
-  color: gray;
+  color: grey;
   margin-top: 16px;
 }
 
 .waveButton {
   cursor: pointer;
+  color: black;
   margin-top: 16px;
   padding: 8px;
   border: 0;
-  border-radius: 5px;
-  
+  border-radius: 8px;
+}
+
+.messageBox {
+  margin-top: 16px;
+  text-align: center;
+  padding: 8px;
+  border: 1;
+  border-style: solid;
+  border-color: grey;
+  border-radius: 8px;
 }
