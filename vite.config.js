@@ -1,7 +1,6 @@
 import reactRefresh from '@vitejs/plugin-react-refresh'
 
 /**
- * https://vitejs.dev/config/
  * @type { import('vite').UserConfig }
  */
 export default {
@@ -11,5 +10,7 @@ export default {
     hmr: {
       port: 443,
     }
-  }
+  },
+  root: 'dist'
 }
+
