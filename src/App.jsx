@@ -239,14 +239,14 @@ const wave = async () => {
         </div>
 
         {currentAccount && onRinkeby && (
-          <button className="waveButton" onClick={wave}>
-          Wave at Me
-          </button>
+          <input placeholder="Wave Message" className="messageBox" id="message">
+          </input>
         )}
 
         {currentAccount && onRinkeby && (
-          <input placeholder="Wave Message" className="messageBox" id="message">
-          </input>
+          <button className="waveButton" onClick={wave}>
+          Wave at Me
+          </button>
         )}
 
         {currentAccount && onRinkeby && (
